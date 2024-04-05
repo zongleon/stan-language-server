@@ -6,6 +6,6 @@ parameters {
   real<lower=0,upper=1> theta;
 }
 model {
-  theta ~ beta(1,1);  /orm prior on interval 0,1
+  theta ~ beta(1,1); / Form prior on interval 0,1
   y ~ bernoulli(theta);
 }

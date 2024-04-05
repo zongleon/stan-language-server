@@ -14,11 +14,10 @@ def query_stanc_ast(uri: str) -> str:
     return str(ast)
 
 
-def get_stanc_errors(uri: str) -> str:
+def get_stanc_errors(file: str, path: str) -> str:
     """Ask stanc to compile, return errors if they exist."""
-    path = urlparse(uri).path
     stanc = subprocess.run(
-        ["stanc", "--warn-pedantic", path],
+        ["stanc", "--filename-in-msg", urlparse(file).path, "--warn-pedantic", path],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -42,4 +41,4 @@ def parse_location(err: str) -> Tuple[int, int, int]:
     if len(cols) == 2:
         end = int(re.search(r"column (\d+)", cols[1]).group(1))
 
-    return (lineno - 1, start - 1, end - 1)
+    return (lineno - 1, start, end)

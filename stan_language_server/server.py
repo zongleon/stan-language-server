@@ -22,6 +22,9 @@ from lsprotocol.types import (
     Position,
 )
 
+import os
+import tempfile
+
 from . import __version__
 
 SERVER = LanguageServer(
@@ -66,9 +69,16 @@ def create_diagnostic(
 def refresh_diagnostics(server: LanguageServer, params):
     """Get and parse diagnostic list from stanc utils"""
     uri = params.text_document.uri
-    out = get_stanc_errors(uri)
 
+    tf = tempfile.NamedTemporaryFile("w", delete=False)
+    tf.writelines(server.workspace.get_document(uri).lines)
+    tf.close()
+    out = get_stanc_errors(uri, tf.name)
+    os.unlink(tf.name)
+
+    diags = []
     if len(out) == 0:
+        server.publish_diagnostics(uri=uri, diagnostics=diags)
         return
 
     lines = out.split("\n")
@@ -84,7 +94,6 @@ def refresh_diagnostics(server: LanguageServer, params):
         err_str += "\n" + line.strip()
     errs.append((err_type, err_str))
 
-    diags = []
     for typ, err in errs:
         server.show_message_log(err, MessageType.Error)
         lineno, start, end = parse_location(err)
