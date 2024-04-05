@@ -1,0 +1,14 @@
+# VSCode
+.vscode/
+
+# Poetry build artifacts
+dist/
+
+# Python cache
+__pycache__/
+
+# Local cmdstan build for testing
+cmdstan-2.34.1/
+
+# Compiled stan files
+*.hpp
