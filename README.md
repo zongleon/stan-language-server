@@ -10,10 +10,20 @@ Assuming you have poetry installed, run:
 make
 ```
 
+This runs:
+```sh
+poetry build
+pip3 install dist/stan_language_server-0.1.0-py3-none-any.whl --force-reinstall
+```
+
+Which is appropriate for testing but you might want to install the wheel in a venv
+or somewhere else.
+
 ## How to use
 
 I am using neovim, so here's how I'm testing the server so far. This expects that
 you are using [lspconfig](https://github.com/neovim/nvim-lspconfig) to manage LSPs.
+I added this to my neovim init.
 
 ```lua
 local lspconfig = require 'lspconfig'
@@ -34,6 +44,16 @@ if not configs.stan_language_server then
 end
 
 lspconfig.stan_language_server.setup {}
+```
+
+Until I write the neovim client, you will also have to set the filetype.
+
+```lua
+vim.filetype.add {
+  extension = {
+    stan = 'stan',
+  },
+}
 ```
 
 ## Roadmap

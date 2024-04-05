@@ -92,17 +92,6 @@ lsprotocol = "2023.0.1"
 ws = ["websockets (>=11.0.3)"]
 
 [[package]]
-name = "sexpdata"
-version = "1.0.2"
-description = "S-expression parser for Python"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "sexpdata-1.0.2-py3-none-any.whl", hash = "sha256:b39c918f055a85c5c35c1d4f7930aabb176bd29016e5ba5692e7e849914b2a1a"},
-    {file = "sexpdata-1.0.2.tar.gz", hash = "sha256:92b67b0361f6766f8f9e44b9519cf3fbcfafa755db85bbf893c3e1cf4ddac109"},
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.10.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -116,4 +105,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4f06f5efccba241aab28914d82f974e158bd3bc6cdc69fe61bcb93df5a950233"
+content-hash = "ccac4530dd0a78cd5b374f148429fab4a803d5e555684bf72366c0d6553806af"

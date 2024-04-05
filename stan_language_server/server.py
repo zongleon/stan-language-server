@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .utils import get_stanc_errors, parse_location
+from .utils import get_stanc_errors, parse_location, get_signatures
 
 from pygls.server import LanguageServer
 from lsprotocol.types import (
@@ -10,6 +10,8 @@ from lsprotocol.types import (
     TEXT_DOCUMENT_DID_OPEN,
     DiagnosticSeverity,
     CompletionItem,
+    CompletionItemKind,
+    CompletionItemLabelDetails,
     CompletionList,
     CompletionOptions,
     CompletionParams,
@@ -33,25 +35,33 @@ SERVER = LanguageServer(
 )
 
 
+def get_completions() -> CompletionList:
+    func_list = get_signatures()
+    items = []
+    for name, sig, doc in func_list:
+        item = CompletionItem(
+            label=name,
+            label_details=CompletionItemLabelDetails(detail=sig),
+            documentation=doc,
+            kind=CompletionItemKind.Function,
+        )
+        items.append(item)
+
+    com_list = CompletionList(is_incomplete=False, items=items)
+    return com_list
+
+
+COMPLETIONS = get_completions()
+
+
 @SERVER.feature(
     TEXT_DOCUMENT_COMPLETION,
-    CompletionOptions(resolve_provider=True),
 )
 def completion(
     server: LanguageServer, params: CompletionParams
 ) -> Optional[CompletionList]:
     """Return a list of completions."""
-    document = server.workspace.get_document(params.text_document.uri).uri
-
-    server.show_message_log(document, MessageType.Log)
-
-    completion_items = []
-
-    return (
-        CompletionList(is_incomplete=False, items=completion_items)
-        if completion_items
-        else None
-    )
+    return COMPLETIONS
 
 
 def create_diagnostic(
@@ -71,7 +81,7 @@ def refresh_diagnostics(server: LanguageServer, params):
     uri = params.text_document.uri
 
     tf = tempfile.NamedTemporaryFile("w", delete=False)
-    tf.writelines(server.workspace.get_document(uri).lines)
+    tf.write(server.workspace.get_document(uri).source)
     tf.close()
     out = get_stanc_errors(uri, tf.name)
     os.unlink(tf.name)

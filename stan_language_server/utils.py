@@ -1,9 +1,11 @@
-from typing import Tuple
+from typing import Tuple, List
 from urllib.parse import urlparse
 
+import csv
 import re
 import subprocess
 
+FUNCTIONS = "stan-functions.txt"
 
 def query_stanc_ast(uri: str) -> str:
     stanc = subprocess.run(
@@ -26,6 +28,7 @@ def get_stanc_errors(file: str, path: str) -> str:
 
 
 def parse_location(err: str) -> Tuple[int, int, int]:
+    """From the error string, parse out the location of the error."""
     sections = err.split(",")
     line = sections[1]
     cols = sections[2].split("to")
@@ -42,3 +45,15 @@ def parse_location(err: str) -> Tuple[int, int, int]:
         end = int(re.search(r"column (\d+)", cols[1]).group(1))
 
     return (lineno - 1, start, end)
+
+
+def get_signatures() -> List[Tuple[str, str, str, str]]:
+    """Get a list of function signatures."""
+    funcs = []
+    with open(FUNCTIONS, "r") as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=";")
+        for row in reader:
+            sig = row["Arguments"] + " -> " + row["ReturnType"]
+            funcs.append((row["StanFunction"], sig, row["Documentation"]))
+
+    return funcs
