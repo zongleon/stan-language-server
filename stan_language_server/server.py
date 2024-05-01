@@ -1,6 +1,12 @@
 from typing import Optional
 
-from .utils import get_stanc_errors, parse_location, get_signatures
+from .utils import (
+    get_stanc_errors,
+    parse_location,
+    get_variables,
+    get_completions,
+    get_keywords,
+)
 
 from pygls.server import LanguageServer
 from lsprotocol.types import (
@@ -9,9 +15,6 @@ from lsprotocol.types import (
     TEXT_DOCUMENT_DID_CLOSE,
     TEXT_DOCUMENT_DID_OPEN,
     DiagnosticSeverity,
-    CompletionItem,
-    CompletionItemKind,
-    CompletionItemLabelDetails,
     CompletionList,
     CompletionOptions,
     CompletionParams,
@@ -23,10 +26,7 @@ from lsprotocol.types import (
     Range,
     Position,
 )
-
 import os
-import tempfile
-
 from . import __version__
 
 SERVER = LanguageServer(
@@ -34,24 +34,8 @@ SERVER = LanguageServer(
     version=__version__,
 )
 
-
-def get_completions() -> CompletionList:
-    func_list = get_signatures()
-    items = []
-    for name, sig, doc in func_list:
-        item = CompletionItem(
-            label=name,
-            label_details=CompletionItemLabelDetails(detail=sig),
-            documentation=doc,
-            kind=CompletionItemKind.Function,
-        )
-        items.append(item)
-
-    com_list = CompletionList(is_incomplete=False, items=items)
-    return com_list
-
-
 COMPLETIONS = get_completions()
+KEYWORDS = get_keywords()
 
 
 @SERVER.feature(
@@ -61,7 +45,25 @@ def completion(
     server: LanguageServer, params: CompletionParams
 ) -> Optional[CompletionList]:
     """Return a list of completions."""
-    return COMPLETIONS
+    uri = params.text_document.uri
+    src = server.workspace.get_document(uri).source
+    lines = src.split("\n")
+    line = lines[params.position.line]
+    rest = "\n".join(lines[: params.position.line] + lines[params.position.line + 1 :])
+    variables = get_variables(rest)
+
+    server.show_message_log(f"# Variables: {len(variables)}", MessageType.Debug)
+    server.show_message_log(f"# Funcs: {len(COMPLETIONS)}", MessageType.Debug)
+
+    # rhs of assignment
+    if line.find("=") != -1 and line.index("=") < params.position.character:
+        return CompletionList(is_incomplete=False, items=COMPLETIONS + variables)
+    # rhs of distribution
+    elif line.find("~") != -1 and line.index("~") < params.position.character:
+        return CompletionList(is_incomplete=False, items=COMPLETIONS)
+
+    # lhs / newline
+    return CompletionList(is_incomplete=False, items=variables + KEYWORDS)
 
 
 def create_diagnostic(
@@ -79,12 +81,9 @@ def create_diagnostic(
 def refresh_diagnostics(server: LanguageServer, params):
     """Get and parse diagnostic list from stanc utils"""
     uri = params.text_document.uri
+    src = server.workspace.get_document(uri).source
 
-    tf = tempfile.NamedTemporaryFile("w", delete=False)
-    tf.write(server.workspace.get_document(uri).source)
-    tf.close()
-    out = get_stanc_errors(uri, tf.name)
-    os.unlink(tf.name)
+    out = get_stanc_errors(uri, src)
 
     diags = []
     if len(out) == 0:

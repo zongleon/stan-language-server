@@ -1,11 +1,56 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 from urllib.parse import urlparse
 
 import csv
+
+# from functools import lru_cache
+import json
+import os
 import re
 import subprocess
+import tempfile
 
-FUNCTIONS = "stan-functions.txt"
+from lsprotocol.types import (
+    CompletionItem,
+    CompletionItemKind,
+    CompletionItemLabelDetails,
+)
+
+FUNCTIONS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "stan-functions.txt"
+)
+KEYWORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stan-keywords.txt")
+
+
+def get_completions() -> List[CompletionItem]:
+    func_list = read_signatures()
+    items = []
+    for name, sig, doc in func_list:
+        item = CompletionItem(
+            label=name,
+            label_details=CompletionItemLabelDetails(detail=sig),
+            documentation=doc,
+            kind=CompletionItemKind.Function,
+        )
+        items.append(item)
+
+    return items
+
+
+def get_keywords() -> List[CompletionItem]:
+    kw_list = read_keywords()
+    items = []
+    for name, type in kw_list:
+        kind = CompletionItemKind.Keyword
+        if type == "function":
+            kind = CompletionItemKind.Function
+        item = CompletionItem(
+            label=name,
+            kind=kind,
+        )
+        items.append(item)
+
+    return items
 
 def query_stanc_ast(uri: str) -> str:
     stanc = subprocess.run(
@@ -16,15 +61,62 @@ def query_stanc_ast(uri: str) -> str:
     return str(ast)
 
 
-def get_stanc_errors(file: str, path: str) -> str:
+def get_stanc_errors(uri: str, src: str) -> str:
     """Ask stanc to compile, return errors if they exist."""
+
+    tf = tempfile.NamedTemporaryFile("w", delete=False)
+    tf.write(src)
+    tf.close()
+
     stanc = subprocess.run(
-        ["stanc", "--filename-in-msg", urlparse(file).path, "--warn-pedantic", path],
+        [
+            "stanc",
+            "--filename-in-msg",
+            urlparse(uri).path,
+            "--warn-pedantic",
+            tf.name,
+        ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
     out = stanc.stderr.decode()
+
+    os.unlink(tf.name)
     return out
+
+
+def parse_stanc_info(stanc_info: Dict) -> List[CompletionItem]:
+
+    blocks = ["inputs", "parameters", "transformed parameters", "generated quantities"]
+    items = []
+    for block in blocks:
+        stan_block = stanc_info[block]
+        for name, info in stan_block.items():
+            item = CompletionItem(
+                label=name,
+                label_details=CompletionItemLabelDetails(detail=info["type"]),
+                kind=CompletionItemKind.Variable,
+            )
+            items.append(item)
+
+    return items
+
+
+def get_variables(src: str) -> List[CompletionItem]:
+    """"""
+    tf = tempfile.NamedTemporaryFile("w", delete=False)
+    tf.write(src)
+    tf.close()
+
+    stanc = subprocess.run(
+        ["stanc", "--info", tf.name],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stanc_info = json.loads(stanc.stdout.decode())
+
+    os.unlink(tf.name)
+    return parse_stanc_info(stanc_info)
 
 
 def parse_location(err: str) -> Tuple[int, int, int]:
@@ -34,10 +126,10 @@ def parse_location(err: str) -> Tuple[int, int, int]:
     cols = sections[2].split("to")
 
     lineno = re.search(r"line (\d+)", line)
-    
+
     if lineno == None:
         return (0, 0, 0)
-    
+
     lineno = int(lineno.group(1))
     start = end = int(re.search(r"column (\d+)", cols[0]).group(1))
 
@@ -47,7 +139,7 @@ def parse_location(err: str) -> Tuple[int, int, int]:
     return (lineno - 1, start, end)
 
 
-def get_signatures() -> List[Tuple[str, str, str, str]]:
+def read_signatures() -> List[Tuple[str, str, str, str]]:
     """Get a list of function signatures."""
     funcs = []
     with open(FUNCTIONS, "r") as csvfile:
@@ -57,3 +149,14 @@ def get_signatures() -> List[Tuple[str, str, str, str]]:
             funcs.append((row["StanFunction"], sig, row["Documentation"]))
 
     return funcs
+
+
+def read_keywords() -> List[Tuple[str, str]]:
+    """"""
+    kws = []
+    with open(KEYWORDS, "r") as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=",")
+        for row in reader:
+            kws.append((row["Name"], row["Type"]))
+
+    return kws
