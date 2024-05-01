@@ -69,16 +69,19 @@ STAN functions.
 Keyword completions are manually added from the following page:
 https://mc-stan.org/docs/reference-manual/expressions.html#reserved-names.
 The current list of keyword completions are found in the following 
-[https://docs.google.com/spreadsheets/d/1MJqSPgcLxSIKI7qxCH1gVq3SKGUQL25dYww3BDaHERs/edit?usp=sharing](Google Sheets link).
-
+[Google Sheets link](https://docs.google.com/spreadsheets/d/1MJqSPgcLxSIKI7qxCH1gVq3SKGUQL25dYww3BDaHERs/edit?usp=sharing).
 Variable completions are currently limited to variables declared in `data` or `(transformed) parameters` or `quantities`.
 
 ## Roadmap
 
 - [ ] LSP implementation
-    - [x] textDocument/completion
+    - [x] Completion
     - [x] Diagnostics
-    - [ ] Definitely more
+    - [ ] Hover
+    - [ ] Rename
+    - [ ] Goto Declaration
+    - [ ] Goto Definition
+    - [ ] Probably more (snippets?) (folds?)
 - [ ] Clients
     - [ ] VSCode extension
     - [ ] Neovim (lspconfig+mason)
