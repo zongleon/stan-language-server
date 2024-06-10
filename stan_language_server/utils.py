@@ -122,6 +122,8 @@ def get_variables(src: str) -> List[CompletionItem]:
 def parse_location(err: str) -> Tuple[int, int, int]:
     """From the error string, parse out the location of the error."""
     sections = err.split(",")
+    if len(sections) < 3:
+        return (0, 0, 0)
     line = sections[1]
     cols = sections[2].split("to")
 
