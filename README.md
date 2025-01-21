@@ -3,6 +3,9 @@
 A server implementing the Language Server Protocol for the STAN probabilistic
 programming language. Currently in a very alpha state.
 
+Note: You must have the stan compiler [stanc3 binary](https://github.com/stan-dev/stanc3/releases)
+on your path. It should be named `stanc`.
+
 ## Installing
 
 Assuming you have poetry installed, run:

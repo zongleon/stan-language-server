@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "stan-language-server"
 version = "0.1.0"
-description = ""
+description = "Language server implementation for STAN, using pygls."
 authors = ["Leon Zong <leon@leonzong.com>"]
 readme = "README.md"
 

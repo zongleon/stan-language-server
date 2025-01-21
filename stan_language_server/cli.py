@@ -4,6 +4,7 @@ import sys
 
 from . import __version__
 from .server import SERVER
+from .utils import set_stan_path
 
 def get_version() -> str:
     """Get the program version."""
@@ -32,6 +33,12 @@ Examples:
         "--tcp",
         help="use TCP web server instead of stdio",
         action="store_true",
+    )
+    parser.add_argument(
+        "--stan-path",
+        help="path to stanc executable (stanc3)",
+        type=str,
+        default="stanc"
     )
     parser.add_argument(
         "--host",
@@ -75,6 +82,8 @@ Examples:
     else:
         logging.basicConfig(stream=sys.stderr, level=log_level)
 
+    set_stan_path(args.stan_path)
+    
     if args.tcp:
         SERVER.start_tcp(host=args.host, port=args.port)
     else:

@@ -21,6 +21,11 @@ FUNCTIONS = os.path.join(
 )
 KEYWORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stan-keywords.txt")
 
+STAN_PATH = None
+
+def set_stan_path(stan_path):
+    global STAN_PATH
+    STAN_PATH = stan_path
 
 def get_completions() -> List[CompletionItem]:
     func_list = read_signatures()
@@ -54,7 +59,7 @@ def get_keywords() -> List[CompletionItem]:
 
 def query_stanc_ast(uri: str) -> str:
     stanc = subprocess.run(
-        ["stanc", "--debug-decorated-ast", uri], stdout=subprocess.PIPE
+        [STAN_PATH, "--debug-decorated-ast", uri], stdout=subprocess.PIPE
     )
     ast = stanc.stdout.decode()
 
@@ -70,7 +75,7 @@ def get_stanc_errors(uri: str, src: str) -> str:
 
     stanc = subprocess.run(
         [
-            "stanc",
+            STAN_PATH,
             "--filename-in-msg",
             urlparse(uri).path,
             "--warn-pedantic",
@@ -109,7 +114,7 @@ def get_variables(src: str) -> List[CompletionItem]:
     tf.close()
 
     stanc = subprocess.run(
-        ["stanc", "--info", tf.name],
+        [STAN_PATH, "--info", tf.name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
