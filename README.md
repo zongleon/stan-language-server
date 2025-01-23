@@ -4,8 +4,10 @@ A server implementing the Language Server Protocol (LSP) for the STAN probabilis
 programming language. Currently in a very alpha state. Just for fun! Learning
 about the LSP.
 
-Note: You must have the stan compiler [stanc3 binary](https://github.com/stan-dev/stanc3/releases)
-on your path. It should be named `stanc`.
+Update: While finishing up the VSCode extension I learned that this has already been done
+by Brian Ward ([see here](https://github.com/wardbrian/vscode-stan-extension)). That
+looks a lot more fleshed out than mine - it also takes advantage of the new STAN javascript
+compiler. Use that for sure. But it has been a fun experiment!
 
 ## Installing
 
