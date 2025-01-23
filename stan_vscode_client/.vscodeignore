@@ -1,0 +1,9 @@
+.vscode
+.gitignore
+**/tsconfig.json
+node_modules
+client/**
+!client/dist/extension.js
+tsconfig.json
+webpack.config.js
+esbuild.js

@@ -1,12 +1,16 @@
 # stan-language-server
 
-A server implementing the Language Server Protocol for the STAN probabilistic
-programming language. Currently in a very alpha state.
+A server implementing the Language Server Protocol (LSP) for the STAN probabilistic
+programming language. Currently in a very alpha state. Just for fun! Learning
+about the LSP.
 
 Note: You must have the stan compiler [stanc3 binary](https://github.com/stan-dev/stanc3/releases)
 on your path. It should be named `stanc`.
 
 ## Installing
+
+*NEW:* I've published it on pypi now! You can now install via
+`pip install stan-language-server`.
 
 Assuming you have poetry installed, run:
 ```sh
@@ -20,7 +24,7 @@ pip3 install dist/stan_language_server-0.1.0-py3-none-any.whl --force-reinstall
 ```
 
 Which is appropriate for testing but you might want to install the wheel in a venv
-or somewhere else.
+or somewhere else. 
 
 ## How to use
 
@@ -58,6 +62,8 @@ vim.filetype.add {
   },
 }
 ```
+
+If you are using VSCode, there is a WIP client here. See the README there for details.
 
 ## Details
 
